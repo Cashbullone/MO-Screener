@@ -81,12 +81,14 @@ a{color:var(--ok)}
 <div class="grid" style="margin-top:12px">
 <label>Ticker<input id="ht" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="z. B. NVDA"></label>
 <label>Kaufdatum<input id="hdate" type="date"></label>
-<label>Kurs in USD<input id="hp" type="number" inputmode="decimal" min="0" step="any"></label>
+<label>Währung des Kaufkurses<select id="hc"><option value="EUR">EUR</option><option value="USD">USD</option></select></label>
+<label>Kaufkurs<input id="hp" type="number" inputmode="decimal" min="0" step="any"></label>
+<label id="hxl">Wechselkurs beim Kauf (USD je 1 EUR)<input id="hx" type="number" inputmode="decimal" min="0" step="0.0001"></label>
 <label>Stück<input id="hq" type="number" inputmode="decimal" min="0" step="any"></label>
 </div>
 <div class="row" style="margin-top:0"><button id="hsave" class="pri">Kauf eintragen</button></div>
 <p id="hmsg" class="mut small" role="status" style="margin:10px 0 0"></p>
-<p class="mut small">Mehrere Käufe derselben Aktie fasst die App zu einer Position mit Durchschnittskurs zusammen. Nach einem Verkauf entfernst du die Position (Knopf „Verkauf erledigt“ oder „Position entfernen“).</p></details></section>
+<p class="mut small">Den Kaufkurs trägst du wahlweise in EUR oder USD ein (Auswahlfeld, vorbelegt mit der Depotwährung aus den Einstellungen). Bei EUR rechnet die App ihn mit dem Wechselkurs beim Kauf in USD um, weil Rang, Stops und Kurslücken in USD berechnet werden. Das Feld ist mit dem aktuellen Kurs vorbelegt, ändere es, wenn der Kauf länger zurückliegt. Der Gewinn zeigt bei EUR-Käufen die Wechselkursänderung seit dem Kauf mit. Mehrere Käufe derselben Aktie fasst die App zu einer Position mit Durchschnittskurs zusammen. Nach einem Verkauf entfernst du die Position (Knopf „Verkauf erledigt“ oder „Position entfernen“).</p></details></section>
 
 <section id="ranksec"><div class="top"><h2>Rangliste Momentum</h2><span id="rkinfo" class="mut small"></span></div>
 <div id="ranks"></div>
@@ -256,11 +258,13 @@ function evalHold(){
   HEL={};
   HE=order.map(t=>{
     const h=g[t],st=BY[t],q=h.fills.reduce((s,f)=>s+f.q,0),cost=h.fills.reduce((s,f)=>s+f.q*f.p,0),avg=q?cost/q:0;
-    const e={t,fills:h.fills,q,cost,avg,st,exits:[],warn:[]};
+    const costE=h.fills.reduce((s,f)=>s+f.q*(f.ec==='EUR'&&f.ev>0?f.ev:f.p/fxr()),0);   // Einstand in EUR: bei EUR-Käufen der eingetragene Kurs, sonst USD zum heutigen Kurs
+    const e={t,fills:h.fills,q,cost,costE,avg,st,exits:[],warn:[]};
     if(!st){e.err='Keine Kursdaten für diesen Ticker';e.value=cost}
     else{
       const x=xinfo(st),m=MO[t];
-      Object.assign(e,{price:st.p,value:q*st.p,pl:(st.p-avg)*q,plp:avg?(st.p/avg-1)*100:0,x,m});
+      const plE=q*st.p/fxr()-costE;   // Gewinn in EUR inklusive Wechselkurseffekt bei EUR-Käufen
+      Object.assign(e,{price:st.p,value:q*st.p,pl:plE*fxr(),plp:avg?(st.p/avg-1)*100:0,plpE:costE?plE/costE*100:0,x,m});
       if(x.below100)e.exits.push('Schlusskurs unter der 100-Tage-Linie ('+px(x.s100)+')');
       if(m&&m.top>S.cfg.mx)e.exits.push('Momentum-Rang nur noch Top '+f1(m.top)+' % (Grenze '+S.cfg.mx+' %)');
       if(x.gapHit)e.exits.push('Kurslücke über 15 % in den letzten 90 Tagen ('+f1(x.gap)+' %)');
@@ -355,12 +359,12 @@ function posCard(e){
   if(e.err)h+='<p class="note w">'+esc(e.err)+'. Die Position zählt mit ihrem Kaufwert.</p>';
   else{
     const m=e.m;
-    h+='<div class="kv">'+kv('Kurs',px(e.price))+kv('Ø Kaufkurs',px(e.avg))+kv('Gewinn/Verlust',sg(fromUsd(e.pl),0)+(S.cfg.cur==='EUR'?' €':' $')+' ('+sg(e.plp)+' %)')+kv('Wert',M(e.value))+
+    h+='<div class="kv">'+kv('Kurs',px(e.price))+kv('Ø Kaufkurs',f2(e.avg)+' $ / '+f2(e.costE/e.q)+' €')+kv('Gewinn/Verlust',sg(fromUsd(e.pl),0)+(S.cfg.cur==='EUR'?' €':' $')+' ('+sg(e.plpE)+' %)')+kv('Wert',M(e.value))+
       kv('Rang',m?m.r+' von '+m.n+' (Top '+f1(m.top)+' %)':'–')+kv('100-Tage-Linie',e.x.s100!=null?px(e.x.s100):'–')+'</div>';
     if(e.exits.length)h+='<div class="box bad"><b>Verkaufssignal:</b> '+e.exits.map(esc).join('; ')+'</div>';
     e.warn.forEach(w=>{h+='<p class="note w">'+esc(w)+'</p>'});
   }
-  h+='<table class="ft"><tbody>'+e.fills.map(f=>'<tr><td>'+esc(f.d.split('-').reverse().join('.'))+'</td><td>'+f0(f.q)+' Stück zu '+px(f.p)+'</td><td class="r"><button class="sm" data-delfill="'+esc(f.id)+'" aria-label="Kauf löschen">✕</button></td></tr>').join('')+'</tbody></table>';
+  h+='<table class="ft"><tbody>'+e.fills.map(f=>'<tr><td>'+esc(f.d.split('-').reverse().join('.'))+'</td><td>'+f0(f.q)+' Stück zu '+(f.ec==='EUR'&&f.ev>0?f2(f.p)+' $ / '+f2(f.ev)+' €<br><span class="mut small">1 € = '+fd(f.ex,4)+' $ beim Kauf</span>':px(f.p))+'</td><td class="r"><button class="sm" data-delfill="'+esc(f.id)+'" aria-label="Kauf löschen">✕</button></td></tr>').join('')+'</tbody></table>';
   h+='<div class="row" style="margin-top:6px"><button class="sm" data-delpos="'+esc(e.t)+'">Position entfernen</button></div></div>';
   return h;
 }
@@ -426,24 +430,32 @@ function render(){
   else{MO={};MX=null;HE=[];HEL={};CAND={};PLAN=null;evalHold()}
   rStatus();rMarket();wdLine();
   if(D)rPlan();else $('#plan').innerHTML='<p class="mut">Ohne Kursdaten gibt es keinen Plan.</p>';
-  rDepot();rRanks();rSearch();
+  rDepot();rRanks();rSearch();hcSync();
 }
 
 /* ---------- Eingaben ---------- */
 const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
 const normT=t=>String(t||'').trim().toUpperCase().replace(/\./g,'-');
 const uid=()=>Math.random().toString(36).slice(2,9);
+const hcSync=()=>{
+  const e=$('#hc').value==='EUR',x=$('#hx');
+  $('#hxl').hidden=!e;
+  if(e&&(!(parseFloat(x.value)>0)||x.dataset.auto==='1')){x.value=fxr().toFixed(4);x.dataset.auto='1'}    // vorbelegt mit dem aktuellen Kurs, bis du ihn selbst änderst
+};
 function prefill(t,price,qty){
-  $('#ht').value=t;$('#hdate').value=today();$('#hp').value=price!=null?(+price).toFixed(2):'';$('#hq').value=qty||'';
+  const eur=S.cfg.cur!=='USD';$('#hc').value=eur?'EUR':'USD';$('#hx').dataset.auto='';$('#hx').value='';hcSync();
+  $('#ht').value=t;$('#hdate').value=today();$('#hp').value=price!=null?(eur?(+price/fxr()):+price).toFixed(2):'';$('#hq').value=qty||'';
   $('#addbox').open=true;$('#hmsg').textContent='';$('#addbox').scrollIntoView({behavior:'smooth',block:'center'});
 }
 function addFill(){
-  const t=normT($('#ht').value),p=parseFloat($('#hp').value),q=parseFloat($('#hq').value),d=$('#hdate').value||today();
+  const t=normT($('#ht').value),p0=parseFloat($('#hp').value),q=parseFloat($('#hq').value),d=$('#hdate').value||today();
+  const eur=$('#hc').value==='EUR',ex=eur?parseFloat($('#hx').value):1,p=+(p0*ex).toFixed(4);
   const m=x=>{$('#hmsg').textContent=x};
   if(!t)return m('Bitte einen Ticker eintragen.');
-  if(!(p>0)||!(q>0))return m('Kurs und Stück müssen größer als 0 sein.');
+  if(!(p0>0)||!(q>0))return m('Kurs und Stück müssen größer als 0 sein.');
+  if(eur&&!(ex>0.3&&ex<3))return m('Bitte den Wechselkurs beim Kauf (USD je 1 EUR, etwa 1,10) eintragen.');
   if(!/^\d{4}-\d{2}-\d{2}$/.test(d)||isNaN(Date.parse(d)))return m('Bitte ein gültiges Datum wählen.');
-  S.pos.push({id:uid(),t,q,p,d});
+  S.pos.push(Object.assign({id:uid(),t,q,p,d},eur?{ec:'EUR',ev:p0,ex}:{}));
   save();render();
   m(t+': Kauf eingetragen.');
   $('#hp').value='';$('#hq').value='';
@@ -476,11 +488,12 @@ const bkObj=()=>({app:'mo-screener',v:1,cfg:S.cfg,pos:S.pos});
 function bkApply(o){
   if(!o||o.app!=='mo-screener'||!Array.isArray(o.pos))throw new Error('Das ist keine Sicherung des MO-Screeners.');
   S.cfg=Object.assign({},DEF,o.cfg);
-  S.pos=o.pos.filter(f=>f&&f.t&&f.q>0&&f.p>0&&/^\d{4}-\d{2}-\d{2}$/.test(f.d)).map(f=>({id:f.id||uid(),t:normT(f.t),q:+f.q,p:+f.p,d:f.d}));
+  S.pos=o.pos.filter(f=>f&&f.t&&f.q>0&&f.p>0&&/^\d{4}-\d{2}-\d{2}$/.test(f.d)).map(f=>Object.assign({id:f.id||uid(),t:normT(f.t),q:+f.q,p:+f.p,d:f.d},f.ec==='EUR'&&f.ev>0&&f.ex>0?{ec:'EUR',ev:+f.ev,ex:+f.ex}:{}));
   save();rSettings();render();
 }
 function init(){
   rSettings();$('#hdate').value=today();
+  $('#hc').value=S.cfg.cur==='USD'?'USD':'EUR';$('#hc').onchange=hcSync;$('#hx').oninput=e=>{e.target.dataset.auto=''};hcSync();
   document.addEventListener('change',e=>{const t=e.target;if(t.dataset&&t.dataset.cfg)setCfg(t.dataset.cfg,t)});
   $('#q').addEventListener('input',rSearch);
   document.addEventListener('click',e=>{
