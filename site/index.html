@@ -13,7 +13,7 @@ main{max-width:1180px;margin:0 auto;padding:20px 16px 40px}
 h1{font:700 28px/1.15 Georgia,"Times New Roman",serif;margin:8px 0 4px}
 h2{font-size:17px;margin:0 0 12px}
 h3{font-size:15px;margin:14px 0 6px}
-.mut{color:var(--mut)}.small{font-size:13px}
+.mut{color:var(--mut)}.eur{color:var(--mut);font-weight:400}.small{font-size:13px}
 section{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:16px;margin:16px 0}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:12px}
 label{display:block;font-size:14px;color:var(--mut)}
@@ -144,7 +144,9 @@ const save=()=>{try{localStorage.setItem(K,JSON.stringify({cfg:S.cfg,pos:S.pos})
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fd=(n,d)=>Number(n).toLocaleString('de-DE',{minimumFractionDigits:d,maximumFractionDigits:d});
 const f2=n=>fd(n,2),f1=n=>fd(n,1),f0=n=>fd(n,0);
-const px=n=>f2(n)+' $';
+const eur2=n=>f2(n/fxr())+' €';
+const px=n=>f2(n)+' $ / '+eur2(n);   // in einer Zeile: USD / EUR
+const px2=n=>'<span class="usd">'+f2(n)+' $</span><br><span class="eur">'+eur2(n)+'</span>';   // im Wochenplan: USD oben, EUR darunter
 const dDE=u=>new Date(u*864e5).toLocaleDateString('de-DE',{timeZone:'UTC',day:'2-digit',month:'2-digit',year:'numeric'});
 const SECDE={'Communication Services':'Kommunikation','Consumer Discretionary':'Zyklischer Konsum','Consumer Staples':'Basiskonsum','Energy':'Energie','Financials':'Finanzen','Health Care':'Gesundheit','Industrials':'Industrie','Information Technology':'Technologie','Materials':'Rohstoffe','Real Estate':'Immobilien','Utilities':'Versorger'};
 const secName=k=>k?(SECDE[k]||k):'Sektor unbekannt';
@@ -338,10 +340,10 @@ function rPlan(){
   }else{
     h+='<div class="tbl"><table class="sheet"><thead><tr><th>Aktion</th><th>Aktie</th><th class="r">Kurs</th><th class="r">Stück</th><th>Hinweis</th></tr></thead><tbody>';
     for(const e of P.sells){
-      h+='<tr><td><span class="badge bad">Verkaufen</span></td><td><b>'+esc(e.t)+'</b>'+nameOf(e.st)+'<br><span class="mut small">'+esc(secName(e.st&&e.st.sec))+'</span></td><td class="r">'+(e.price?px(e.price):'–')+'</td><td class="r">'+f0(e.q)+'</td><td class="small">'+esc(e.exits.join('; '))+' <button class="sm" data-done="'+esc(e.t)+'">Verkauf erledigt</button></td></tr>';
+      h+='<tr><td><span class="badge bad">Verkaufen</span></td><td><b>'+esc(e.t)+'</b>'+nameOf(e.st)+'<br><span class="mut small">'+esc(secName(e.st&&e.st.sec))+'</span></td><td class="r">'+(e.price?px2(e.price):'–')+'</td><td class="r">'+f0(e.q)+'</td><td class="small">'+esc(e.exits.join('; '))+' <button class="sm" data-done="'+esc(e.t)+'">Verkauf erledigt</button></td></tr>';
     }
     for(const b of P.buys){
-      h+='<tr><td><span class="badge ok">Kaufen</span></td><td><b>'+esc(b.t)+'</b>'+nameOf(b.st)+'<br><span class="mut small">'+esc(secName(b.st.sec))+'</span></td><td class="r">'+px(b.st.p)+'</td><td class="r">'+f0(b.q)+'</td><td class="small">Rang '+MO[b.t].r+', Wert '+M(b.q*b.st.p)+', Risiko je Tag (1 ATR) '+M(b.q*b.st.atr)+(b.note?' · '+esc(b.note):'')+' <button class="sm" data-buy="'+esc(b.t)+'|'+b.st.p+'|'+b.q+'">Kauf eintragen</button></td></tr>';
+      h+='<tr><td><span class="badge ok">Kaufen</span></td><td><b>'+esc(b.t)+'</b>'+nameOf(b.st)+'<br><span class="mut small">'+esc(secName(b.st.sec))+'</span></td><td class="r">'+px2(b.st.p)+'</td><td class="r">'+f0(b.q)+'</td><td class="small">Rang '+MO[b.t].r+', Wert '+M(b.q*b.st.p)+', Risiko je Tag (1 ATR) '+M(b.q*b.st.atr)+(b.note?' · '+esc(b.note):'')+' <button class="sm" data-buy="'+esc(b.t)+'|'+b.st.p+'|'+b.q+'">Kauf eintragen</button></td></tr>';
     }
     h+='</tbody></table></div>';
   }
@@ -359,8 +361,8 @@ function posCard(e){
   if(e.err)h+='<p class="note w">'+esc(e.err)+'. Die Position zählt mit ihrem Kaufwert.</p>';
   else{
     const m=e.m;
-    h+='<div class="kv">'+kv('Kurs',px(e.price))+kv('Ø Kaufkurs',f2(e.avg)+' $ / '+f2(e.costE/e.q)+' €')+kv('Gewinn/Verlust',sg(fromUsd(e.pl),0)+(S.cfg.cur==='EUR'?' €':' $')+' ('+sg(e.plpE)+' %)')+kv('Wert',M(e.value))+
-      kv('Rang',m?m.r+' von '+m.n+' (Top '+f1(m.top)+' %)':'–')+kv('100-Tage-Linie',e.x.s100!=null?px(e.x.s100):'–')+'</div>';
+    h+='<div class="kv">'+kv('Kurs',px2(e.price))+kv('Ø Kaufkurs',f2(e.avg)+' $ / '+f2(e.costE/e.q)+' €')+kv('Gewinn/Verlust',sg(fromUsd(e.pl),0)+(S.cfg.cur==='EUR'?' €':' $')+' ('+sg(e.plpE)+' %)')+kv('Wert',M(e.value))+
+      kv('Rang',m?m.r+' von '+m.n+' (Top '+f1(m.top)+' %)':'–')+kv('100-Tage-Linie',e.x.s100!=null?px2(e.x.s100):'–')+'</div>';
     if(e.exits.length)h+='<div class="box bad"><b>Verkaufssignal:</b> '+e.exits.map(esc).join('; ')+'</div>';
     e.warn.forEach(w=>{h+='<p class="note w">'+esc(w)+'</p>'});
   }
