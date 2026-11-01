@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="de"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MO-Screener</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#eef1ec;--card:#fbfcfa;--tx:#17211b;--mut:#5b675f;--bd:#d3dad2;--ok:#1b7a4f;--okbg:#dcefe3;--bad:#b3392f;--badbg:#f6dcd8;--warn:#9a6a12;--warnbg:#f4e8c9;--ac:#17211b;--acx:#fbfcfa;color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#131a15;--card:#1b241e;--tx:#e8eee9;--mut:#98a69c;--bd:#2c382f;--ok:#4cc38a;--okbg:#1d3a2a;--bad:#ef7b6e;--badbg:#4a2420;--warn:#e2b552;--warnbg:#3a3014;--ac:#e8eee9;--acx:#131a15;color-scheme:dark}}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums}
+main{max-width:1180px;margin:0 auto;padding:20px 16px 40px}
+h1{font:700 28px/1.15 Georgia,"Times New Roman",serif;margin:8px 0 4px}
+h2{font-size:17px;margin:0 0 12px}
+h3{font-size:15px;margin:14px 0 6px}
+.mut{color:var(--mut)}.small{font-size:13px}
+section{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:16px;margin:16px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:12px}
+label{display:block;font-size:14px;color:var(--mut)}
+input,textarea,select{display:block;width:100%;margin-top:4px;padding:10px;font:inherit;color:var(--tx);background:var(--bg);border:1px solid var(--bd);border-radius:6px}
+textarea{font-size:13px;resize:vertical}
+input:focus-visible,textarea:focus-visible,button:focus-visible,summary:focus-visible,select:focus-visible{outline:2px solid var(--ok);outline-offset:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;align-items:center}
+button{font:inherit;font-weight:600;padding:10px 16px;border-radius:6px;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer}
+button.pri{background:var(--ac);color:var(--acx);border-color:var(--ac)}
+button.sm{padding:3px 10px;font-size:13px}
+.sum{font-size:15px;margin:0 0 6px}
+.card{border-top:1px solid var(--bd);padding:14px 0}
+.card:first-of-type{border-top:0}
+.top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.tk{font:700 21px Georgia,serif}
+.cn{font-size:14px;color:var(--mut);margin-left:6px}
+.badge{display:inline-block;font-size:12.5px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--bd);color:var(--mut);margin-right:4px}
+.badge.ok{background:var(--okbg);color:var(--ok)}.badge.w{background:var(--warnbg);color:var(--warn)}.badge.bad{background:var(--badbg);color:var(--bad)}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;font-size:13px;color:var(--mut);margin:10px 0}
+.kv b{display:block;color:var(--tx);font-size:15px}
+.note{font-size:14px;margin:6px 0}
+.note.bad{color:var(--bad)}.note.w{color:var(--warn)}.note.ok{color:var(--ok)}
+.box{border-radius:8px;padding:10px 12px;font-size:14px;background:var(--okbg);margin:8px 0}
+.box.w{background:var(--warnbg)}.box.bad{background:var(--badbg)}.box.n{background:var(--bg);border:1px solid var(--bd)}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:var(--mut);text-align:left;padding:4px 8px 6px 0;font-weight:600}
+td{padding:6px 8px 6px 0;border-top:1px solid var(--bd);vertical-align:top}
+td.r,th.r{text-align:right;white-space:nowrap}
+.tbl{overflow-x:auto}
+.ft td{padding:3px 8px 3px 0;border-top:0;font-size:13px}
+details{font-size:14px;color:var(--mut)}summary{cursor:pointer;color:var(--tx);font-weight:600}
+details p{margin:8px 0}
+#msg,#hmsg,#bkm{white-space:pre-line}
+a{color:var(--ok)}
+@media(max-width:640px){
+.sheet,.sheet tbody{display:block}
+.sheet thead{display:none}
+.sheet tr{display:grid;grid-template-columns:1fr auto auto;gap:2px 12px;padding:8px 0;border-top:1px solid var(--bd)}
+.sheet tr:first-child{border-top:0}
+.sheet td{border:0;padding:0}
+.sheet td:nth-child(1){grid-column:1/-1}
+.sheet td:nth-child(2){grid-column:1}
+.sheet td:nth-child(3){grid-column:2;font-weight:600}
+.sheet td:nth-child(4){grid-column:3}
+.sheet td:nth-child(4)::after{content:' Stück'}
+.sheet td:nth-child(5){grid-column:1/-1}
+}
+.rk td.n{color:var(--mut)}
+.rk tr.sel td{background:var(--okbg)}
+</style></head><body><main>
+<h1>MO-Screener</h1>
+<p class="mut" style="margin:0">Reines Momentum nach dem Dokument „Trend-Momentum-Strategie für Aktien“: Rang aus 12-1-Rendite und Clenow-Trendqualität, Marktfilter auf den S&amp;P 500, Positionsgröße nach ATR. Ohne Minervini.</p>
+<p id="dstat" class="small" style="margin:8px 0 0" role="status"></p>
+
+<section id="mktsec"><h2>Marktfilter</h2><div id="mkt"></div></section>
+
+<section id="plansec"><div class="top"><h2>Wochenplan</h2></div>
+<p id="wd" class="mut small" style="margin:0 0 8px"></p>
+<div id="plan"></div></section>
+
+<section id="depotsec"><h2>Depot</h2>
+<p id="dsum" class="sum"></p>
+<div id="dlist"></div>
+<details id="addbox" style="margin-top:12px"><summary>Kauf eintragen</summary>
+<div class="grid" style="margin-top:12px">
+<label>Ticker<input id="ht" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="z. B. NVDA"></label>
+<label>Kaufdatum<input id="hdate" type="date"></label>
+<label>Kurs in USD<input id="hp" type="number" inputmode="decimal" min="0" step="any"></label>
+<label>Stück<input id="hq" type="number" inputmode="decimal" min="0" step="any"></label>
+</div>
+<div class="row" style="margin-top:0"><button id="hsave" class="pri">Kauf eintragen</button></div>
+<p id="hmsg" class="mut small" role="status" style="margin:10px 0 0"></p>
+<p class="mut small">Mehrere Käufe derselben Aktie fasst die App zu einer Position mit Durchschnittskurs zusammen. Nach einem Verkauf entfernst du die Position (Knopf „Verkauf erledigt“ oder „Position entfernen“).</p></details></section>
+
+<section id="ranksec"><div class="top"><h2>Rangliste Momentum</h2><span id="rkinfo" class="mut small"></span></div>
+<div id="ranks"></div>
+<label style="margin-top:14px;max-width:420px">Aktie suchen (Ticker oder Name)<input id="q" type="search" autocomplete="off" autocapitalize="characters" placeholder="z. B. NVDA oder Nvidia"></label>
+<div id="qres" style="margin-top:8px"></div></section>
+
+<section><h2>Einstellungen</h2><div id="settings"></div>
+<p class="mut small" style="margin:0">Alle Eingaben bleiben nur in diesem Browser. Welche Werte aus Quellen stammen und welche meine Annahmen sind, steht unter „So rechnet die App“.</p></section>
+
+<section><h2>Kursdaten</h2>
+<div class="row" style="margin-top:0"><button id="reload" class="pri">Daten neu laden</button></div>
+<p class="mut small">Die Seite holt die täglich von GitHub aktualisierten Daten selbst. Eine <code>prices.json</code> kannst du auch von Hand laden (zum Beispiel zum Testen):</p>
+<label style="max-width:360px">prices.json laden<input id="pfile" type="file" accept=".json,application/json"></label>
+<p id="msg" class="mut small" role="status" style="margin:10px 0 0"></p></section>
+
+<section><h2>Sicherung</h2>
+<p class="mut small" style="margin:0 0 8px">Depot und Einstellungen liegen nur in diesem Browser. Sichere sie als Datei, damit sie bei gelöschtem Browser-Speicher oder einem Gerätewechsel nicht verloren gehen.</p>
+<div class="row" style="margin-top:0"><button id="bkx" class="pri">Depot exportieren</button><button id="bki">Depot importieren</button><input id="bkf" type="file" accept=".json,application/json" hidden></div>
+<details style="margin-top:10px"><summary>Als Text kopieren oder einfügen</summary>
+<textarea id="bkt" rows="5" aria-label="Sicherung als Text" placeholder="Hier erscheint der Sicherungstext, oder füge einen gesicherten Text ein."></textarea>
+<div class="row"><button id="bkc">Text erzeugen</button><button id="bkp">Text importieren</button></div></details>
+<p id="bkm" class="mut small" role="status" style="margin:10px 0 0"></p></section>
+
+<details style="margin-bottom:8px"><summary>So rechnet die App</summary>
+<h3>Rangliste</h3>
+<p><b>12-1-Rendite:</b> Kurs vor 21 Handelstagen geteilt durch den Kurs vor 252 Handelstagen, minus 1. Der letzte Monat bleibt draußen (Jegadeesh und Titman; Gray und Vogel).</p>
+<p><b>Clenow-Wert:</b> Steigung einer Regressionsgeraden durch die Logarithmen der letzten 90 Schlusskurse, auf ein Jahr von 250 Handelstagen hochgerechnet (e<sup>Steigung × 250</sup> − 1), mal R². Wer gleichmäßig steigt, bekommt ein hohes R² und damit einen höheren Wert als jemand mit einem einzelnen Sprung (Clenow, „Stocks on the Move“).</p>
+<p><b>Score und Rang:</b> Beide Zahlen werden in Prozentränge von 1 bis 99 unter allen Aktien umgerechnet, die den Mindestkurs und den Mindestumsatz erfüllen. Der Score ist der Durchschnitt der beiden Prozentränge, der Rang ergibt sich aus dem Score. Diese Kombination ist ein Vorschlag aus dem Dokument und nicht als Ganzes untersucht.</p>
+<p><b>Frog in the Pan</b> (Da, Gurun, Warachka; Gray und Vogel): Im 12-1-Fenster zählt die App Gewinn- und Verlusttage. Wert = Vorzeichen der Rendite × (Anteil Verlusttage − Anteil Gewinntage). Je kleiner, desto gleichmäßiger der Anstieg. Mit dem eingestellten Prozentwert (Standard 50, wie bei Gray und Vogel) streicht die App unter den Titeln im Kaufbereich die sprunghaftesten als Kaufkandidaten. Bei 0 ist der Filter aus.</p>
+<h3>Kaufen</h3>
+<p>Ein Titel kommt als Kandidat infrage, wenn er im Kaufbereich liegt (Standard: beste 20 % des Rangs), über seiner 100-Tage-Linie schließt, in den letzten 90 Handelstagen keine Tagesbewegung über 15 % hatte (Schlusskurs zu Schlusskurs), nicht als zu sprunghaft gestrichen ist und der Marktfilter Käufe erlaubt. Der Wochenplan geht die Rangliste von oben nach unten durch und füllt freie Plätze, solange Sektorgrenze (Standard 3 je Sektor), Positionszahl (Standard 10) und Investitionsgrad es zulassen. Verkäufe in derselben Liste geben Platz und Geld frei, die Käufe rechnen damit.</p>
+<p><b>Dieser Screener arbeitet ohne Minervini.</b> Das Dokument nutzt als Trendfilter das Trend Template. Hier übernehmen Clenows Regeln diese Aufgabe: 100-Tage-Linie und Kurslückenfilter. Den Ausstiegsgrund „Trend Template nicht mehr erfüllt“ aus dem Dokument gibt es deshalb nicht. Wer das Template will, nutzt den MN-Screener.</p>
+<h3>Marktfilter</h3>
+<p>Neukäufe sind gesperrt, wenn der S&amp;P 500 unter seiner 200-Tage-Linie schließt oder zum letzten Monatsende unter dem Durchschnitt der letzten 10 Monatsschlusskurse lag (Faber). Der laufende Monat zählt erst, wenn er abgeschlossen ist (die App prüft das über den nächsten Werktag und kennt keine Börsenfeiertage). Bei Monatssignal unter dem Durchschnitt ist der Investitionsgrad höchstens 50 % (Annahme).</p>
+<p><b>Volatilitätsbremse:</b> Liegt der S&amp;P 500 mehr als 10 % unter seinem Hoch der letzten 252 Handelstage und der VIX über 30, halbiert sich der Investitionsgrad. Danach steigt er pro Woche um ein Drittel der Lücke bis 100 %, weil die Erholungsphase für Momentum am gefährlichsten ist (Daniel und Moskowitz; Barroso und Santa-Clara). Die Schwellen und die Wiedereinstiegsstufen sind Annahmen. Der empfohlene Investitionsgrad ist das Ergebnis aus Monatssignal und Bremse. Fehlen S&amp;P 500 oder VIX in der Datei, gilt kein Marktfilter.</p>
+<h3>Positionsgröße</h3>
+<p>Stück = Depot × r ÷ ATR(20). Die ATR(20) ist der einfache Durchschnitt der True Range der letzten 20 Handelstage; die True Range ist der größte der Werte Hoch − Tief, |Hoch − Vortagesschluss| und |Tief − Vortagesschluss|. Clenow setzt r = 0,10 % bei 20 bis 30 Positionen. Bei etwa 10 Positionen ist 0,25 % ein naheliegender Wert (Annahme, Standard hier). Eine Position darf höchstens 15 % des Depots ausmachen (Annahme). Beispiel: 10.000 $ Depot, Kurs 100 $, ATR 2,50 $, r = 0,25 % ergibt 10 Stück (1.000 $, 10 % vom Depot).</p>
+<h3>Verkaufen</h3>
+<p>Die App meldet einen Verkauf, wenn (a) der Schlusskurs unter der 100-Tage-Linie liegt, (b) der Rang aus den besten 30 % fällt (gekauft wird nur aus den besten 20 %, der Abstand spart Umschichtungen), (c) in den letzten 90 Handelstagen eine Tagesbewegung über 15 % auftrat oder (d) der Kurs mehr als 9 % unter dem Durchschnittskurs deiner Käufe liegt (Praxisregel, das Dokument nennt 8 bis 10 %). Ist eine Aktie nicht mehr im Ranking, etwa weil sie unter den Mindestkurs fiel, zeigt die App nur einen Hinweis.</p>
+<h3>Rhythmus</h3>
+<p>Clenow prüft einmal pro Woche an einem festen Tag (bei ihm mittwochs), nicht täglich. Der Wochenplan zeigt jeden Tag den aktuellen Stand, hebt aber hervor, ob heute dein Prüftag ist. Die Daten sind vom letzten Börsenschluss, gehandelt wird erst am nächsten Handelstag.</p>
+<h3>Nicht enthalten</h3>
+<p>Gewinnmitnahmen in Stufen sind keine belegte Renditequelle und fehlen. Es gibt keinen Backtest und keine Kosten- oder Steuerrechnung. Das Universum besteht aus den heutigen Mitgliedern von S&amp;P 500 und Nasdaq-100 (Survivorship Bias). Hebelprodukte rechnet die App nicht. Momentum hatte lange Durststrecken und seltene, heftige Einbrüche (Daniel und Moskowitz 2016).</p>
+<p>Quellen: <a href="https://ideas.repec.org/a/bla/jfinan/v48y1993i1p65-91.html" rel="noopener">Jegadeesh &amp; Titman 1993</a> · <a href="https://www.nber.org/papers/w20439" rel="noopener">Daniel &amp; Moskowitz, Momentum Crashes</a> · <a href="https://ciencia.ucp.pt/en/publications/momentum-has-its-moments/" rel="noopener">Barroso &amp; Santa-Clara</a> · <a href="https://www.quantconnect.com/forum/discussion/10493/andreas-clenow-momentum-strategy-using-framework-from-stocks-on-the-move-book/p1" rel="noopener">Clenow-Regeln (Nachbau)</a> · <a href="https://blog.validea.com/quantitative-momentum-investing/" rel="noopener">Gray &amp; Vogel</a></p>
+<p class="mut small">Keine Anlageberatung. Kursdaten von Yahoo Finance, verzögert und ohne Gewähr.</p></details>
+</main>
+<script>
+const $=s=>document.querySelector(s),K='mo1';
+const DEF={eq:50000,cur:'EUR',fx:1.08,mf:true,bd:10,bx:30,mt:20,mx:30,fp:50,minP:10,minDV:20,maxPos:10,rp:0.25,cap:15,sx:3,sl:9,wd:3};
+let S={cfg:Object.assign({},DEF),pos:[]};
+try{const o=JSON.parse(localStorage.getItem(K)||'null');if(o){S.cfg=Object.assign({},DEF,o.cfg);S.pos=Array.isArray(o.pos)?o.pos:[]}}catch(e){}
+const save=()=>{try{localStorage.setItem(K,JSON.stringify({cfg:S.cfg,pos:S.pos}))}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const fd=(n,d)=>Number(n).toLocaleString('de-DE',{minimumFractionDigits:d,maximumFractionDigits:d});
+const f2=n=>fd(n,2),f1=n=>fd(n,1),f0=n=>fd(n,0);
+const px=n=>f2(n)+' $';
+const dDE=u=>new Date(u*864e5).toLocaleDateString('de-DE',{timeZone:'UTC',day:'2-digit',month:'2-digit',year:'numeric'});
+const SECDE={'Communication Services':'Kommunikation','Consumer Discretionary':'Zyklischer Konsum','Consumer Staples':'Basiskonsum','Energy':'Energie','Financials':'Finanzen','Health Care':'Gesundheit','Industrials':'Industrie','Information Technology':'Technologie','Materials':'Rohstoffe','Real Estate':'Immobilien','Utilities':'Versorger'};
+const secName=k=>k?(SECDE[k]||k):'Sektor unbekannt';
+let D=null,BY={},MO={},FIPC=null,MX=null,HE=[],HEL={},CAND={},PLAN=null;
+const setMsg=t=>{$('#msg').textContent=t};
+
+/* ---------- Geld ---------- */
+const fxr=()=>(D&&D.fx>0)?D.fx:(S.cfg.fx>0?S.cfg.fx:1.08);
+const toUsd=v=>S.cfg.cur==='EUR'?v*fxr():v;
+const fromUsd=v=>S.cfg.cur==='EUR'?v/fxr():v;
+const M=v=>f0(fromUsd(v))+(S.cfg.cur==='EUR'?' €':' $');
+const eqFull=()=>toUsd(+S.cfg.eq||0);
+
+/* ---------- Kennzahlen ---------- */
+const sma=(a,n)=>{const e=a.length;if(e<n)return null;let s=0;for(let i=e-n;i<e;i++){if(!(a[i]>0))return null;s+=a[i]}return s/n};
+// 12-1-Rendite, Frog-in-the-Pan-Wert und Clenow-Wert (annualisierte exponentielle Steigung über 90 Tage × R²)
+function momRaw(c){
+  const n=c.length,o={m:null,cl:null,sl:null,r2:null,up:null,dn:null,fip:null};
+  if(n>=253&&c[n-22]>0&&c[n-253]>0){
+    o.m=c[n-22]/c[n-253]-1;
+    let up=0,dn=0,T=0;
+    for(let i=n-252;i<=n-22;i++){const a=c[i],b=c[i-1];if(!(a>0&&b>0))continue;const r=a/b-1;T++;if(r>0)up++;else if(r<0)dn++}
+    if(T>0){o.up=up/T;o.dn=dn/T;o.fip=Math.sign(o.m)*(o.dn-o.up)}
+  }
+  if(n>=90){
+    const N=90;let sx=0,sy=0,sxx=0,sxy=0,syy=0,ok=true;
+    for(let i=0;i<N;i++){const v=c[n-N+i];if(!(v>0)){ok=false;break}const y=Math.log(v);sx+=i;sy+=y;sxx+=i*i;sxy+=i*y;syy+=y*y}
+    const dx=N*sxx-sx*sx,dy=N*syy-sy*sy;
+    if(ok&&dx>0){const b=(N*sxy-sx*sy)/dx,r2=dy>0?Math.pow(N*sxy-sx*sy,2)/(dx*dy):0;o.sl=Math.exp(b*250)-1;o.r2=r2;o.cl=o.sl*100*r2}
+  }
+  return o;
+}
+const vis=()=>D?D.stocks.filter(s=>s.p>=S.cfg.minP&&s.p*(s.av||0)>=S.cfg.minDV*1e6):[];
+// Score = Durchschnitt der Prozentränge (1 bis 99) von 12-1-Rendite und Clenow-Wert unter allen Aktien, die den Mindestkurs und -umsatz erfüllen
+function buildMom(){
+  const V=[];
+  vis().forEach(st=>{const o=momRaw(st.c);if(o.m!=null&&o.cl!=null&&o.fip!=null&&isFinite(o.m)&&isFinite(o.cl))V.push(Object.assign({t:st.t},o))});
+  const N=V.length;MO={};FIPC=null;
+  if(N<2)return N;
+  const pct=k=>{const s=V.map(x=>x[k]).sort((a,b)=>a-b);return v=>{let lo=0,hi=N;while(lo<hi){const mid=(lo+hi)>>1;if(s[mid]<v)lo=mid+1;else hi=mid}return Math.max(1,Math.min(99,1+98*lo/(N-1)))}};
+  const pm=pct('m'),pc=pct('cl');
+  V.forEach(x=>{x.pm=pm(x.m);x.pc=pc(x.cl);x.sc=(x.pm+x.pc)/2});
+  V.slice().sort((a,b)=>b.sc-a.sc||b.cl-a.cl||(a.t<b.t?-1:1)).forEach((x,i)=>{MO[x.t]={m:x.m*100,cl:x.cl,sl:x.sl*100,r2:x.r2,pm:Math.round(x.pm),pc:Math.round(x.pc),s:Math.round(x.sc),r:i+1,n:N,top:(i+1)/N*100,up:x.up*100,dn:x.dn*100,fip:x.fip}});
+  const fp=Math.min(100,S.cfg.fp||0);
+  if(fp>0){
+    const pool=Object.values(MO).filter(x=>x.top<=S.cfg.mt).map(x=>x.fip).sort((a,b)=>a-b),keep=Math.ceil(pool.length*(100-fp)/100);
+    if(pool.length)FIPC={cut:keep>=1?pool[keep-1]:-Infinity,n:pool.length};
+  }
+  return N;
+}
+// 100-Tage-Linie und Kurslücke (größte Tagesbewegung der letzten 90 Handelstage, Schlusskurs zu Schlusskurs)
+function xinfo(st){
+  const c=st.c,n=c.length,s100=sma(c,100);let gap=0;
+  if(n>=91)for(let i=n-90;i<n;i++){if(!(c[i]>0&&c[i-1]>0))continue;const g=Math.abs(c[i]/c[i-1]-1);if(g>gap)gap=g}
+  return {s100,below100:s100!=null&&st.p<s100,gap:gap*100,gapHit:gap>.15};
+}
+// Marktfilter: S&P 500 gegen 200-Tage-Linie (täglich) und gegen den 10-Monats-Durchschnitt (Monatsende), dazu Volatilitätsbremse
+function calcMarket(){
+  MX=null;
+  const m=D&&D.mkt&&D.mkt.sp&&Array.isArray(D.mkt.sp.c)&&Array.isArray(D.mkt.sp.d)&&D.mkt.sp.c.length===D.mkt.sp.d.length&&D.mkt.sp.c.length>=210?D.mkt:null;
+  if(!m)return;
+  const c=m.sp.c,d=m.sp.d,n=c.length,p=c[n-1],s200=sma(c,200),above200=p>s200;
+  const mk=i=>{const t=new Date(d[i]*864e5);return t.getUTCFullYear()*12+t.getUTCMonth()};
+  const me=[];
+  for(let i=0;i<n;i++)if(i===n-1||mk(i+1)!==mk(i))me.push(i);
+  const lastD=new Date(d[n-1]*864e5),nb=new Date(lastD);
+  do{nb.setUTCDate(nb.getUTCDate()+1)}while(nb.getUTCDay()===0||nb.getUTCDay()===6);
+  if(nb.getUTCMonth()===lastD.getUTCMonth())me.pop();      // laufender Monat ist noch nicht abgeschlossen
+  const mon=me.slice(-10),mAvg=mon.length===10?mon.reduce((s,i)=>s+c[i],0)/10:null,mCur=mon.length?c[mon[mon.length-1]]:null;
+  const below=mAvg!=null?mCur<mAvg:null;
+  const vx=m.vix&&Array.isArray(m.vix.c)&&Array.isArray(m.vix.d)&&m.vix.c.length===m.vix.d.length&&m.vix.c.length?new Map(m.vix.d.map((x,i)=>[x,m.vix.c[i]])):null;
+  const ddAt=i=>{let hi=0;for(let k=Math.max(0,i-251);k<=i;k++)if(c[k]>hi)hi=c[k];return (1-c[i]/hi)*100};
+  const br=i=>{const v=vx?vx.get(d[i]):null;return v!=null&&ddAt(i)>S.cfg.bd&&v>S.cfg.bx};
+  const ddNow=ddAt(n-1),vixNow=vx?m.vix.c[m.vix.c.length-1]:null,brakeNow=br(n-1);
+  let lastB=-1;
+  if(vx)for(let i=n-1;i>=0&&d[n-1]-d[i]<=28;i--){if(br(i)){lastB=i;break}}
+  const w=lastB<0?null:Math.floor((d[n-1]-d[lastB])/7);
+  let f=1,stage='';
+  if(brakeNow){f=.5;stage='aktiv: Markt '+f1(ddNow)+' % unter dem Hoch, VIX '+f1(vixNow)}
+  else if(lastB>=0&&w<3){f=.5+.5*w/3;stage='Wiedereinstieg, Woche '+(w+1)+' von 3'}
+  const level=Math.round((below===true?.5:1)*f*100),why=[];
+  if(!above200)why.push('S&P 500 unter der 200-Tage-Linie');
+  if(below===true)why.push('S&P 500 lag zum letzten Monatsende unter dem 10-Monats-Durchschnitt');
+  MX={p,s200,above200,d:d[n-1],ddNow,vixNow,hasVix:!!vx,mDate:mon.length?d[mon[mon.length-1]]:null,mAvg,mCur,below,brakeNow,stage,f,level,why,block:why.length>0};
+}
+const mktBlocked=()=>!!(MX&&MX.block&&S.cfg.mf);
+const levelPct=()=>MX?MX.level:100;
+
+/* ---------- Kaufbedingungen, Größe, Plan ---------- */
+function gate(st){
+  const m=MO[st.t],x=xinfo(st),w=[];
+  if(!m){w.push('nicht im Ranking (zu wenig Kursdaten)');return w}
+  if(m.top>S.cfg.mt)w.push('Rang nur Top '+f1(m.top)+' % (Kaufbereich: beste '+S.cfg.mt+' %)');
+  if(x.below100)w.push('Kurs unter der 100-Tage-Linie');
+  if(x.gapHit)w.push('Kurslücke über 15 % in 90 Tagen');
+  if(FIPC&&m.top<=S.cfg.mt&&m.fip>FIPC.cut)w.push('Kursverlauf zu sprunghaft (Frog in the Pan)');
+  return w;
+}
+function sizeOf(st,price){
+  const eq=eqFull(),a=st.atr,c=S.cfg;
+  if(!(eq>0))return{q:0,why:'Depotwert fehlt (Einstellungen)'};
+  if(!(c.rp>0))return{q:0,why:'Risikoanteil r ist 0'};
+  if(!(a>0))return{q:0,why:'ATR fehlt'};
+  const byR=Math.floor(eq*c.rp/100/a),byM=c.cap>0?Math.floor(eq*c.cap/100/price):Infinity;
+  const q=Math.max(0,Math.min(byR,byM));
+  return{q,want:byR,capped:byM<byR,atr:a,why:q<=0?'Risiko je Position zu klein für diese ATR':''};
+}
+function evalHold(){
+  const g={},order=[];
+  for(const f of S.pos){if(!g[f.t]){g[f.t]={t:f.t,fills:[]};order.push(f.t)}g[f.t].fills.push(f)}
+  HEL={};
+  HE=order.map(t=>{
+    const h=g[t],st=BY[t],q=h.fills.reduce((s,f)=>s+f.q,0),cost=h.fills.reduce((s,f)=>s+f.q*f.p,0),avg=q?cost/q:0;
+    const e={t,fills:h.fills,q,cost,avg,st,exits:[],warn:[]};
+    if(!st){e.err='Keine Kursdaten für diesen Ticker';e.value=cost}
+    else{
+      const x=xinfo(st),m=MO[t];
+      Object.assign(e,{price:st.p,value:q*st.p,pl:(st.p-avg)*q,plp:avg?(st.p/avg-1)*100:0,x,m});
+      if(x.below100)e.exits.push('Schlusskurs unter der 100-Tage-Linie ('+px(x.s100)+')');
+      if(m&&m.top>S.cfg.mx)e.exits.push('Momentum-Rang nur noch Top '+f1(m.top)+' % (Grenze '+S.cfg.mx+' %)');
+      if(x.gapHit)e.exits.push('Kurslücke über 15 % in den letzten 90 Tagen ('+f1(x.gap)+' %)');
+      if(S.cfg.sl>0&&avg>0&&st.p<=avg*(1-S.cfg.sl/100))e.exits.push('Kurs '+f1(-e.plp)+' % unter dem Einstand (Grenze '+S.cfg.sl+' %)');
+      if(!m)e.warn.push('Nicht im Ranking (zu wenig Kursdaten, oder unter Mindestkurs/Mindestumsatz). Die Rang-Regel lässt sich nicht prüfen.');
+    }
+    HEL[t]=e;return e;
+  });
+}
+function planAll(){
+  const c=S.cfg,eq=eqFull(),keep=HE.filter(e=>!e.exits.length),sells=HE.filter(e=>e.exits.length);
+  const secN={};let slots=c.maxPos-keep.length,invested=keep.reduce((s,e)=>s+(e.value||e.cost||0),0);
+  keep.forEach(e=>{if(e.st&&e.st.sec)secN[e.st.sec]=(secN[e.st.sec]||0)+1});
+  const level=levelPct(),blocked=mktBlocked();
+  let room=Math.max(0,level/100*eq-invested);
+  CAND={};const buys=[],rej=[];
+  const ranked=Object.keys(MO).sort((a,b)=>MO[a].r-MO[b].r);
+  for(const t of ranked){
+    const st=BY[t];if(!st||HEL[t])continue;
+    const g=gate(st);if(g.length)continue;
+    if(blocked){CAND[t]={ok:false,why:'Markt gesperrt'};continue}
+    if(slots<=0){CAND[t]={ok:false,why:'kein freier Platz ('+c.maxPos+' Positionen)'};continue}
+    if(c.sx>0&&st.sec&&(secN[st.sec]||0)>=c.sx){CAND[t]={ok:false,why:'Sektorgrenze '+secName(st.sec)+' ('+c.sx+')'};rej.push(t);continue}
+    const sz=sizeOf(st,st.p);let q=sz.q,why=sz.why,note=sz.capped?'verkleinert auf '+c.cap+' % vom Depot':'';
+    if(q>0&&q*st.p>room){const q2=Math.floor(room/st.p);if(q2>=1){q=q2;note='verkleinert wegen Investitionsgrad '+level+' %'}else{q=0;why='Investitionsgrad '+level+' % ausgeschöpft'}}
+    if(q<=0){CAND[t]={ok:false,why:why||'Stückzahl 0'};rej.push(t);continue}
+    CAND[t]={ok:true,q,note,sz};buys.push({t,st,q,note,sz});
+    slots--;room-=q*st.p;invested+=q*st.p;if(st.sec)secN[st.sec]=(secN[st.sec]||0)+1;
+  }
+  PLAN={sells,buys,rej,blocked,level,slots,invested,room,secN};
+}
+
+/* ---------- Anzeige ---------- */
+const secBadge=st=>st&&st.sec?'<span class="badge">'+esc(secName(st.sec))+'</span>':'';
+const nameOf=st=>st&&st.n&&st.n!==st.t?'<span class="cn">'+esc(st.n)+'</span>':'';
+const kv=(a,b)=>'<div>'+a+'<b>'+b+'</b></div>';
+const sg=(v,d)=>(v>=0?'+':'')+fd(v,d===undefined?1:d);
+function rStatus(){
+  const el=$('#dstat');
+  if(!D){el.innerHTML='<span class="note bad">Keine Kursdaten geladen. Unter „Kursdaten“ kannst du eine prices.json laden.</span>';return}
+  const age=Math.floor((Date.now()-Date.parse(D.asof+'T00:00:00Z'))/864e5);
+  const mo=Object.keys(MO).length;
+  el.innerHTML='Stand der Kurse: '+dDE(Math.floor(Date.parse(D.asof+'T00:00:00Z')/864e5))+' · '+D.stocks.length+' Aktien geladen, '+mo+' im Ranking (ab '+S.cfg.minP+' $ und '+S.cfg.minDV+' Mio. $ Tagesumsatz)'+(age>4?' <span class="note bad">Die Daten sind '+age+' Tage alt. Prüfe die Automatik unter „Actions“ auf GitHub.</span>':'');
+}
+function rMarket(){
+  const el=$('#mkt');
+  if(!D){el.innerHTML='<p class="mut">Ohne Kursdaten kein Marktfilter.</p>';return}
+  if(!MX){el.innerHTML='<div class="box w"><b>Kein Marktfilter.</b> S&amp;P 500 und VIX fehlen in der Datei oder sind zu kurz. Die App sperrt deshalb keine Käufe und rechnet mit 100 % Investitionsgrad.</div>';return}
+  const m=MX,cls=m.block?'bad':(m.level<100?'w':'');
+  let h='<div class="box '+cls+'"><b>'+(m.block?'Neukäufe gesperrt':'Neukäufe erlaubt')+'</b> · empfohlener Investitionsgrad höchstens <b>'+m.level+' %</b>'+
+    (m.block&&!S.cfg.mf?' <span class="small">(Sperre in den Einstellungen ausgeschaltet, nur Hinweis)</span>':'')+
+    (m.why.length?'<br><span class="small">'+m.why.map(esc).join(' · ')+'</span>':'')+(m.stage?'<br><span class="small">Volatilitätsbremse '+esc(m.stage)+'</span>':'')+'</div>';
+  h+='<div class="kv">'+kv('S&amp;P 500 ('+dDE(m.d)+')',f0(m.p))+kv('200-Tage-Linie',f0(m.s200)+' ('+sg((m.p/m.s200-1)*100)+' %)')+
+    kv('Monatsende '+(m.mDate?dDE(m.mDate):'–'),m.mAvg!=null?f0(m.mCur)+' gegen Ø10 '+f0(m.mAvg):'zu wenig Monate')+
+    kv('Abstand zum 252-Tage-Hoch',f1(m.ddNow)+' %')+kv('VIX',m.hasVix?f1(m.vixNow):'fehlt')+'</div>';
+  el.innerHTML=h;
+}
+function wdLine(){
+  const names=['Sonntag','Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'],wd=+S.cfg.wd,dow=new Date().getDay();
+  if(!(wd>=1&&wd<=5)){$('#wd').textContent='';return}
+  const diff=(wd-dow+7)%7;
+  $('#wd').innerHTML=diff===0?'<b>Heute ist dein Prüftag ('+names[wd]+').</b> Gehandelt wird nach dem Plan unten, am besten zum nächsten Handelstag.':'Dein Prüftag ist '+names[wd]+' (in '+diff+' Tag'+(diff>1?'en':'')+'). Die Liste zeigt jeden Tag den aktuellen Stand, getauscht wird nach Clenow nur an einem festen Tag pro Woche.';
+}
+function rPlan(){
+  const box=$('#plan');
+  if(!D){box.innerHTML='<p class="mut">Ohne Kursdaten gibt es keinen Plan.</p>';return}
+  if(eqFull()<=0){box.innerHTML='<p class="note w">Trage unter „Einstellungen“ deinen Depotwert ein, damit die App Stückzahlen rechnen kann.</p>';return}
+  const P=PLAN;let h='';
+  if(!P.sells.length&&!P.buys.length){
+    h+='<p>'+(P.blocked?'Keine Käufe: Der Marktfilter sperrt Neukäufe.':'Diese Woche ist nichts zu tun.')+'</p>';
+  }else{
+    h+='<div class="tbl"><table class="sheet"><thead><tr><th>Aktion</th><th>Aktie</th><th class="r">Kurs</th><th class="r">Stück</th><th>Hinweis</th></tr></thead><tbody>';
+    for(const e of P.sells){
+      h+='<tr><td><span class="badge bad">Verkaufen</span></td><td><b>'+esc(e.t)+'</b> <span class="mut small">'+esc(secName(e.st&&e.st.sec))+'</span></td><td class="r">'+(e.price?px(e.price):'–')+'</td><td class="r">'+f0(e.q)+'</td><td class="small">'+esc(e.exits.join('; '))+' <button class="sm" data-done="'+esc(e.t)+'">Verkauf erledigt</button></td></tr>';
+    }
+    for(const b of P.buys){
+      h+='<tr><td><span class="badge ok">Kaufen</span></td><td><b>'+esc(b.t)+'</b> <span class="mut small">'+esc(secName(b.st.sec))+'</span></td><td class="r">'+px(b.st.p)+'</td><td class="r">'+f0(b.q)+'</td><td class="small">Rang '+MO[b.t].r+', Wert '+M(b.q*b.st.p)+', Risiko je Tag (1 ATR) '+M(b.q*b.st.atr)+(b.note?' · '+esc(b.note):'')+' <button class="sm" data-buy="'+esc(b.t)+'|'+b.st.p+'|'+b.q+'">Kauf eintragen</button></td></tr>';
+    }
+    h+='</tbody></table></div>';
+  }
+  const bits=[];
+  bits.push('Plätze nach dem Plan: '+(S.cfg.maxPos-(HE.length-P.sells.length)-P.buys.length)+' von '+S.cfg.maxPos+' frei');
+  bits.push('Investitionsgrad nach dem Plan: '+(eqFull()>0?f0(P.invested/eqFull()*100):0)+' % (empfohlen höchstens '+P.level+' %)');
+  if(P.rej.length)bits.push(P.rej.length+' Kandidat'+(P.rej.length>1?'en':'')+' wegen Sektorgrenze oder Größe übersprungen');
+  h+='<p class="mut small" style="margin:10px 0 0">'+bits.join(' · ')+'. Die Käufe rechnen mit dem Geld und den Plätzen, die die Verkäufe freigeben.</p>';
+  box.innerHTML=h;
+}
+function posCard(e){
+  const st=e.st;
+  let h='<div class="card"><div class="top"><div><span class="tk">'+esc(e.t)+'</span>'+nameOf(st)+'</div><div>'+secBadge(st)+
+    (e.err?'<span class="badge w">ohne Kurse</span>':e.exits.length?'<span class="badge bad">Verkaufen</span>':'<span class="badge ok">halten</span>')+'</div></div>';
+  if(e.err)h+='<p class="note w">'+esc(e.err)+'. Die Position zählt mit ihrem Kaufwert.</p>';
+  else{
+    const m=e.m;
+    h+='<div class="kv">'+kv('Kurs',px(e.price))+kv('Ø Kaufkurs',px(e.avg))+kv('Gewinn/Verlust',sg(fromUsd(e.pl),0)+(S.cfg.cur==='EUR'?' €':' $')+' ('+sg(e.plp)+' %)')+kv('Wert',M(e.value))+
+      kv('Rang',m?m.r+' von '+m.n+' (Top '+f1(m.top)+' %)':'–')+kv('100-Tage-Linie',e.x.s100!=null?px(e.x.s100):'–')+'</div>';
+    if(e.exits.length)h+='<div class="box bad"><b>Verkaufssignal:</b> '+e.exits.map(esc).join('; ')+'</div>';
+    e.warn.forEach(w=>{h+='<p class="note w">'+esc(w)+'</p>'});
+  }
+  h+='<table class="ft"><tbody>'+e.fills.map(f=>'<tr><td>'+esc(f.d.split('-').reverse().join('.'))+'</td><td>'+f0(f.q)+' Stück zu '+px(f.p)+'</td><td class="r"><button class="sm" data-delfill="'+esc(f.id)+'" aria-label="Kauf löschen">✕</button></td></tr>').join('')+'</tbody></table>';
+  h+='<div class="row" style="margin-top:6px"><button class="sm" data-delpos="'+esc(e.t)+'">Position entfernen</button></div></div>';
+  return h;
+}
+function rDepot(){
+  const el=$('#dlist'),sum=$('#dsum');
+  if(!HE.length){sum.textContent='Noch keine Positionen. Trage deinen ersten Kauf unten ein.';el.innerHTML='';return}
+  const full=eqFull(),val=HE.reduce((s,e)=>s+(e.value||e.cost||0),0),pl=HE.reduce((s,e)=>s+(e.pl||0),0);
+  const sec={};HE.forEach(e=>{const k=e.st&&e.st.sec;if(k)sec[k]=(sec[k]||0)+1});
+  const pct=full>0?val/full*100:0,over=full>0&&pct>levelPct()+0.5;
+  sum.innerHTML=HE.length+' Position'+(HE.length>1?'en':'')+' von '+S.cfg.maxPos+' · Wert '+M(val)+(full>0?' ('+f0(pct)+' % vom Depot)':'')+' · '+sg(fromUsd(pl),0)+(S.cfg.cur==='EUR'?' €':' $')+' offen'+
+    (Object.keys(sec).length?'<br><span class="mut small">Sektoren: '+Object.keys(sec).sort().map(s=>esc(secName(s))+' '+sec[s]+(S.cfg.sx>0?'/'+S.cfg.sx:'')).join(' · ')+'</span>':'')+
+    (over?'<br><span class="note w">Investiert sind '+f0(pct)+' %, empfohlen sind höchstens '+levelPct()+' %. Der Marktfilter verlangt weniger Aktien im Depot.</span>':'');
+  const ev=HE.slice().sort((a,b)=>(b.exits.length>0)-(a.exits.length>0)||a.t.localeCompare(b.t));
+  el.innerHTML=ev.map(posCard).join('');
+}
+function statusOf(st){
+  const t=st.t;
+  if(HEL[t])return{k:'ok',txt:'im Depot'+(HEL[t].exits.length?' · Verkauf prüfen':'')};
+  const g=gate(st);
+  if(g.length)return{k:'bad',txt:g[0]};
+  const c=CAND[t];
+  if(c&&c.ok)return{k:'ok',txt:'Kauf im Plan'};
+  return{k:'w',txt:c?c.why:'–'};
+}
+function rankRow(st,sel){
+  const m=MO[st.t],x=xinfo(st);
+  if(!m)return '<tr><td class="n">–</td><td><b>'+esc(st.t)+'</b>'+nameOf(st)+'</td><td colspan="5" class="mut small">nicht im Ranking (unter Mindestkurs/-umsatz oder zu wenig Kursdaten)</td></tr>';
+  const s=statusOf(st);
+  return '<tr'+(sel?' class="sel"':'')+'><td class="n">'+m.r+'</td><td><b>'+esc(st.t)+'</b>'+nameOf(st)+'<br>'+secBadge(st)+'</td><td class="r">'+m.s+'</td><td class="r">'+sg(m.m)+' %</td><td class="r">'+f1(m.cl)+'</td><td class="r">'+(x.s100!=null?sg((st.p/x.s100-1)*100)+' %':'–')+'</td><td><span class="badge '+s.k+'">'+esc(s.txt)+'</span></td></tr>';
+}
+const RHEAD='<div class="tbl"><table class="rk"><thead><tr><th>Rang</th><th>Aktie</th><th class="r">Score</th><th class="r">12-1</th><th class="r">Clenow</th><th class="r">zur 100-T.-Linie</th><th>Status</th></tr></thead><tbody>';
+const RKN=30;
+function rRanks(){
+  const el=$('#ranks');
+  if(!D){el.innerHTML='';$('#rkinfo').textContent='';return}
+  const ranked=Object.keys(MO).sort((a,b)=>MO[a].r-MO[b].r).slice(0,RKN).map(t=>BY[t]).filter(Boolean);
+  const n=Object.keys(MO).length;
+  $('#rkinfo').textContent=n?'beste '+ranked.length+' von '+n+' · Kaufbereich: beste '+S.cfg.mt+' % = Rang 1 bis '+Math.floor(n*S.cfg.mt/100):'';
+  el.innerHTML=ranked.length?RHEAD+ranked.map(st=>rankRow(st)).join('')+'</tbody></table></div>':'<p class="mut">Kein Ranking möglich: zu wenige Aktien mit mindestens 253 Handelstagen Kursdaten.</p>';
+}
+function rSearch(){
+  const q=$('#q').value.trim().toLowerCase(),el=$('#qres');
+  if(!q||!D){el.innerHTML='';return}
+  const hit=D.stocks.filter(s=>s.t.toLowerCase()===q||s.t.toLowerCase().startsWith(q)||(s.n||'').toLowerCase().includes(q)).sort((a,b)=>(a.t.toLowerCase()===q?0:1)-(b.t.toLowerCase()===q?0:1)||a.t.localeCompare(b.t)).slice(0,6);
+  el.innerHTML=hit.length?RHEAD+hit.map(st=>rankRow(st,true)).join('')+'</tbody></table></div>':'<p class="mut small">Keine Aktie gefunden.</p>';
+}
+const FIELDS=[
+ ['Depot',[['eq','Depotwert','n',{min:0,step:100}],['cur','Währung des Depotwerts','s',[['EUR','EUR'],['USD','USD']]],['fx','Wechselkurs, falls die Daten keinen enthalten (USD je 1 EUR)','n',{min:0,step:0.0001}]]],
+ ['Marktfilter',[['mf','Marktfilter sperrt Neukäufe','b'],['bd','Volatilitätsbremse: Markt mehr als … % unter dem Hoch','n',{min:0,step:0.5}],['bx','Volatilitätsbremse: VIX über','n',{min:0,step:1}]]],
+ ['Rangliste und Kaufbereich',[['mt','Kauf nur aus den besten … % im Rang','n',{min:1,max:100,step:1}],['mx','Verkauf, wenn Rang schlechter als Top … %','n',{min:1,max:100,step:1}],['fp','Frog in the Pan: sprunghafteste … % im Kaufbereich streichen (0 = aus)','n',{min:0,max:100,step:5}],['minP','Mindestkurs (USD)','n',{min:0,step:1}],['minDV','Mindest-Tagesumsatz (Mio. USD)','n',{min:0,step:1}]]],
+ ['Positionen',[['maxPos','Zahl der Positionen','n',{min:1,step:1}],['rp','Risikoanteil r je Position (% vom Depot je 1 ATR)','n',{min:0,step:0.05}],['cap','Max. Anteil einer Position am Depot (%, 0 = aus)','n',{min:0,step:1}],['sx','Max. Positionen je Sektor (0 = aus)','n',{min:0,step:1}],['sl','Verkauf bei Verlust von … % unter dem Einstand (0 = aus)','n',{min:0,step:0.5}],['wd','Prüftag der Woche','s',[['1','Montag'],['2','Dienstag'],['3','Mittwoch'],['4','Donnerstag'],['5','Freitag'],['0','keiner']]]]]
+];
+function rSettings(){
+  $('#settings').innerHTML=FIELDS.map(([t,fs])=>'<h3 style="margin-top:0">'+t+'</h3><div class="grid">'+fs.map(([k,l,ty,o])=>{
+    const v=S.cfg[k];
+    if(ty==='n')return '<label>'+esc(l)+'<input data-cfg="'+k+'" type="number" inputmode="decimal"'+Object.entries(o||{}).map(([a,b])=>' '+a+'="'+b+'"').join('')+' value="'+v+'"></label>';
+    if(ty==='b')return '<label>'+esc(l)+'<select data-cfg="'+k+'"><option value="1"'+(v?' selected':'')+'>An</option><option value="0"'+(!v?' selected':'')+'>Aus</option></select></label>';
+    return '<label>'+esc(l)+'<select data-cfg="'+k+'">'+o.map(([a,b])=>'<option value="'+a+'"'+(String(v)===a?' selected':'')+'>'+b+'</option>').join('')+'</select></label>';
+  }).join('')+'</div>').join('');
+}
+function render(){
+  if(D){buildMom();calcMarket();evalHold();planAll()}
+  else{MO={};MX=null;HE=[];HEL={};CAND={};PLAN=null;evalHold()}
+  rStatus();rMarket();wdLine();
+  if(D)rPlan();else $('#plan').innerHTML='<p class="mut">Ohne Kursdaten gibt es keinen Plan.</p>';
+  rDepot();rRanks();rSearch();
+}
+
+/* ---------- Eingaben ---------- */
+const today=()=>new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString().slice(0,10);
+const normT=t=>String(t||'').trim().toUpperCase().replace(/\./g,'-');
+const uid=()=>Math.random().toString(36).slice(2,9);
+function prefill(t,price,qty){
+  $('#ht').value=t;$('#hdate').value=today();$('#hp').value=price!=null?(+price).toFixed(2):'';$('#hq').value=qty||'';
+  $('#addbox').open=true;$('#hmsg').textContent='';$('#addbox').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function addFill(){
+  const t=normT($('#ht').value),p=parseFloat($('#hp').value),q=parseFloat($('#hq').value),d=$('#hdate').value||today();
+  const m=x=>{$('#hmsg').textContent=x};
+  if(!t)return m('Bitte einen Ticker eintragen.');
+  if(!(p>0)||!(q>0))return m('Kurs und Stück müssen größer als 0 sein.');
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d)||isNaN(Date.parse(d)))return m('Bitte ein gültiges Datum wählen.');
+  S.pos.push({id:uid(),t,q,p,d});
+  save();render();
+  m(t+': Kauf eingetragen.');
+  $('#hp').value='';$('#hq').value='';
+}
+function setCfg(k,el){
+  const ty=typeof DEF[k];
+  if(ty==='boolean')S.cfg[k]=el.value==='1';
+  else if(ty==='number'){const v=parseFloat(el.value);if(!isNaN(v))S.cfg[k]=v;else el.value=S.cfg[k]}
+  else S.cfg[k]=el.value;
+  save();render();
+}
+function setData(j){
+  if(!j||!Array.isArray(j.stocks)||!Array.isArray(j.dates)||!j.stocks.length||!j.asof)throw new Error('Die Datei hat nicht das erwartete Format.');
+  const s=j.stocks[0];
+  if(!Array.isArray(s.c)||s.c.length!==j.dates.length)throw new Error('Die Datei enthält keine Kursreihen im erwarteten Format.');
+  D=j;BY={};j.stocks.forEach(x=>{BY[x.t]=x});
+}
+async function load(){
+  try{
+    setMsg('Lade Kursdaten …');
+    const r=await fetch('data/prices.json',{cache:'no-cache'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    setData(await r.json());
+    setMsg('Kursdaten geladen: '+D.stocks.length+' Aktien, Stand '+D.asof+'.');
+  }catch(e){setMsg('Kursdaten konnten nicht geladen werden ('+e.message+'). Auf GitHub Pages liegt die Datei neben der Seite; sonst lade eine prices.json von Hand.')}
+  render();
+}
+/* ---------- Sicherung ---------- */
+const bkObj=()=>({app:'mo-screener',v:1,cfg:S.cfg,pos:S.pos});
+function bkApply(o){
+  if(!o||o.app!=='mo-screener'||!Array.isArray(o.pos))throw new Error('Das ist keine Sicherung des MO-Screeners.');
+  S.cfg=Object.assign({},DEF,o.cfg);
+  S.pos=o.pos.filter(f=>f&&f.t&&f.q>0&&f.p>0&&/^\d{4}-\d{2}-\d{2}$/.test(f.d)).map(f=>({id:f.id||uid(),t:normT(f.t),q:+f.q,p:+f.p,d:f.d}));
+  save();rSettings();render();
+}
+function init(){
+  rSettings();$('#hdate').value=today();
+  document.addEventListener('change',e=>{const t=e.target;if(t.dataset&&t.dataset.cfg)setCfg(t.dataset.cfg,t)});
+  $('#q').addEventListener('input',rSearch);
+  document.addEventListener('click',e=>{
+    const b=e.target.closest('button');if(!b)return;
+    const d=b.dataset;
+    if(d.buy!=null){const [t,price,qty]=d.buy.split('|');prefill(t,+price,+qty)}
+    else if(d.done){if(confirm(d.done+' ist verkauft und kann aus dem Depot?')){S.pos=S.pos.filter(p=>p.t!==d.done);save();render()}}
+    else if(d.delpos){if(confirm(d.delpos+' aus dem Depot entfernen?')){S.pos=S.pos.filter(p=>p.t!==d.delpos);save();render()}}
+    else if(d.delfill){S.pos=S.pos.filter(f=>f.id!==d.delfill);save();render()}
+  });
+  $('#hsave').onclick=addFill;
+  $('#reload').onclick=load;
+  $('#pfile').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{setData(JSON.parse(t));setMsg('Datei geladen: '+D.stocks.length+' Aktien, Stand '+D.asof+'.');render()}).catch(err=>setMsg('Datei nicht lesbar: '+err.message))};
+  $('#bkx').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(bkObj(),null,1)],{type:'application/json'}));a.download='mo-depot-'+today()+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);$('#bkm').textContent='Sicherung heruntergeladen.'};
+  $('#bki').onclick=()=>$('#bkf').click();
+  $('#bkf').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{bkApply(JSON.parse(t));$('#bkm').textContent='Sicherung eingelesen: '+S.pos.length+' Käufe.'}).catch(err=>{$('#bkm').textContent='Import nicht möglich: '+err.message})};
+  $('#bkc').onclick=()=>{$('#bkt').value=JSON.stringify(bkObj());$('#bkm').textContent='Text erzeugt. Kopiere ihn und bewahre ihn auf.'};
+  $('#bkp').onclick=()=>{try{bkApply(JSON.parse($('#bkt').value));$('#bkm').textContent='Text eingelesen: '+S.pos.length+' Käufe.'}catch(err){$('#bkm').textContent='Import nicht möglich: '+err.message}};
+  load();
+}
+init();
+</script></body></html>
