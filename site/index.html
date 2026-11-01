@@ -334,10 +334,10 @@ function rPlan(){
   }else{
     h+='<div class="tbl"><table class="sheet"><thead><tr><th>Aktion</th><th>Aktie</th><th class="r">Kurs</th><th class="r">Stück</th><th>Hinweis</th></tr></thead><tbody>';
     for(const e of P.sells){
-      h+='<tr><td><span class="badge bad">Verkaufen</span></td><td><b>'+esc(e.t)+'</b> <span class="mut small">'+esc(secName(e.st&&e.st.sec))+'</span></td><td class="r">'+(e.price?px(e.price):'–')+'</td><td class="r">'+f0(e.q)+'</td><td class="small">'+esc(e.exits.join('; '))+' <button class="sm" data-done="'+esc(e.t)+'">Verkauf erledigt</button></td></tr>';
+      h+='<tr><td><span class="badge bad">Verkaufen</span></td><td><b>'+esc(e.t)+'</b>'+nameOf(e.st)+'<br><span class="mut small">'+esc(secName(e.st&&e.st.sec))+'</span></td><td class="r">'+(e.price?px(e.price):'–')+'</td><td class="r">'+f0(e.q)+'</td><td class="small">'+esc(e.exits.join('; '))+' <button class="sm" data-done="'+esc(e.t)+'">Verkauf erledigt</button></td></tr>';
     }
     for(const b of P.buys){
-      h+='<tr><td><span class="badge ok">Kaufen</span></td><td><b>'+esc(b.t)+'</b> <span class="mut small">'+esc(secName(b.st.sec))+'</span></td><td class="r">'+px(b.st.p)+'</td><td class="r">'+f0(b.q)+'</td><td class="small">Rang '+MO[b.t].r+', Wert '+M(b.q*b.st.p)+', Risiko je Tag (1 ATR) '+M(b.q*b.st.atr)+(b.note?' · '+esc(b.note):'')+' <button class="sm" data-buy="'+esc(b.t)+'|'+b.st.p+'|'+b.q+'">Kauf eintragen</button></td></tr>';
+      h+='<tr><td><span class="badge ok">Kaufen</span></td><td><b>'+esc(b.t)+'</b>'+nameOf(b.st)+'<br><span class="mut small">'+esc(secName(b.st.sec))+'</span></td><td class="r">'+px(b.st.p)+'</td><td class="r">'+f0(b.q)+'</td><td class="small">Rang '+MO[b.t].r+', Wert '+M(b.q*b.st.p)+', Risiko je Tag (1 ATR) '+M(b.q*b.st.atr)+(b.note?' · '+esc(b.note):'')+' <button class="sm" data-buy="'+esc(b.t)+'|'+b.st.p+'|'+b.q+'">Kauf eintragen</button></td></tr>';
     }
     h+='</tbody></table></div>';
   }
